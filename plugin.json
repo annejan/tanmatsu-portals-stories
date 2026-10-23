@@ -1,0 +1,6 @@
+{
+    "type": "menu",
+    "api_version": 3,
+    "permissions": ["display", "input", "network", "storage"],
+    "autostart": false
+}

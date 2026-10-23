@@ -1,0 +1,3 @@
+# test site
+alpha	e0a657e6419f839de3efa2ca9c357f5ad403dcac4777c4926840db024cc55fd1	67	3	Alpha	The first one. It has a desk.
+beta	d98a967b57afcefb52b0afc9d1e15cf4be8dddcf9854391faaa621e8d0d97283	21	2	Beta	The second one.
