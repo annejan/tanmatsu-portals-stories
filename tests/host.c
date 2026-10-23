@@ -52,6 +52,7 @@ asp_err_t asp_net_is_connected(bool* out) {
 asp_err_t asp_http_get(char const* url, char* response, size_t max_len, int* status) {
     char path[512];
     snprintf(path, sizeof(path), "%s/%s", SITE, url + strlen(STORIES_URL));
+    printf("  > %s\n", url + strlen(STORIES_URL));
     FILE* f = fopen(path, "rb");
     if (f == NULL) {
         *status = 404;

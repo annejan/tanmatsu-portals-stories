@@ -37,6 +37,7 @@
 #define INDEX_MAX  (16 * 1024)
 #define LIST_MAX   (8 * 1024)
 #define FILE_MAX   (1024 * 1024)
+#define BUNDLE_MAX (4 * 1024 * 1024)
 
 typedef enum {
     ST_NEW,       // not on the card
@@ -239,12 +240,11 @@ static void make_dirs(char const* path) {
         }
 }
 
-static bool write_file(char const* path, char const* data) {
+static bool write_file(char const* path, char const* data, size_t n) {
     make_dirs(path);
     FILE* f = fopen(path, "w");
     if (f == NULL) return false;
-    size_t const n  = strlen(data);
-    bool const   ok = fwrite(data, 1, n, f) == n;
+    bool const ok = fwrite(data, 1, n, f) == n;
     return fclose(f) == 0 && ok;
 }
 
@@ -273,8 +273,9 @@ static void remove_stale(char const* id, char paths[][96], int n) {
 // failed fetch leaves the card as it was; then written, the files it no
 // longer has removed, and stamped.
 static bool get_pack(pack_t* p) {
-    static char paths[FILES_MAX][96];
-    static char* data[FILES_MAX];
+    static char  paths[FILES_MAX][96];
+    static int   sizes[FILES_MAX];
+    static char* data[FILES_MAX];  // into `bundle`, or each its own fetch
     char         url[256];
 
     snprintf(s_line, sizeof(s_line), "%s: the list of files...", p->name);
@@ -283,43 +284,72 @@ static bool get_pack(pack_t* p) {
     char* list = fetch(url, LIST_MAX);
     if (list == NULL) return false;
 
-    int   n    = 0;
-    bool  ok   = true;
-    char* rest = list;
+    int   n     = 0;
+    long  total = 0;
+    bool  ok    = true;
+    char* rest  = list;
     char* line;
-    while (ok && (line = next_line(&rest)) != NULL) {
-        int  size = 0;
-        char path[96];
+    while ((line = next_line(&rest)) != NULL) {
         if (line[0] == '\0' || line[0] == '#') continue;
-        if (sscanf(line, "%d\t%95s", &size, path) != 2 || !safe_path(path) || size < 0 || size > FILE_MAX ||
-            n == FILES_MAX) {
+        if (n == FILES_MAX || sscanf(line, "%d\t%95s", &sizes[n], paths[n]) != 2 || !safe_path(paths[n]) ||
+            sizes[n] < 0 || sizes[n] > FILE_MAX) {
             say("The list of files looks wrong.");
             ok = false;
             break;
         }
-        snprintf(s_line, sizeof(s_line), "%s: %d of %d", p->name, n + 1, p->files);
-        draw();
-        snprintf(url, sizeof(url), STORIES_URL "packs/%s/%s", p->id, path);
-        data[n] = fetch(url, (size_t)size);
-        if (data[n] == NULL) {
-            ok = false;
-        } else if ((int)strlen(data[n]) != size) {
-            say("A file came in the wrong size.");
-            free(data[n]);
-            ok = false;
-        } else {
-            snprintf(paths[n], sizeof(paths[n]), "%s", path);
-            n++;
-        }
+        total += sizes[n];
+        n++;
     }
     free(list);
+    if (!ok) return false;
+
+    // The lot in one request (packs/<id>.txt: the files one after another),
+    // so one TLS handshake and not one a file. A site without it, or with a
+    // stale one: the files one by one.
+    char* bundle = NULL;
+    if (total > 0 && total <= BUNDLE_MAX) {
+        snprintf(s_line, sizeof(s_line), "%s: %ld KB...", p->name, (total + 1023) / 1024);
+        draw();
+        snprintf(url, sizeof(url), STORIES_URL "packs/%s.txt", p->id);
+        bundle = fetch(url, (size_t)total);
+        if (bundle != NULL && (long)strlen(bundle) != total) {
+            free(bundle);
+            bundle = NULL;
+        }
+        if (bundle == NULL) asp_log_info(TAG, "%s: no bundle, file by file", p->id);
+    }
+    int got = 0;
+    if (bundle != NULL) {
+        char* at = bundle;
+        for (; got < n; got++) {
+            data[got] = at;
+            at += sizes[got];
+        }
+    } else {
+        for (; got < n; got++) {
+            snprintf(s_line, sizeof(s_line), "%s: %d of %d", p->name, got + 1, n);
+            draw();
+            snprintf(url, sizeof(url), STORIES_URL "packs/%s/%.95s", p->id, paths[got]);
+            data[got] = fetch(url, (size_t)sizes[got]);
+            if (data[got] == NULL) {
+                ok = false;
+                break;
+            }
+            if ((int)strlen(data[got]) != sizes[got]) {
+                say("A file came in the wrong size.");
+                free(data[got]);
+                ok = false;
+                break;
+            }
+        }
+    }
 
     if (ok) {
         say("Writing to the card...");
         char path[160];
         for (int i = 0; i < n && ok; i++) {
             snprintf(path, sizeof(path), DLC_DIR "/%s/%.95s", p->id, paths[i]);
-            ok = write_file(path, data[i]);
+            ok = write_file(path, data[i], (size_t)sizes[i]);
         }
         if (!ok) say("Could not write to the card. Is there one in?");
     }
@@ -336,7 +366,11 @@ static bool get_pack(pack_t* p) {
         p->status = ST_CURRENT;
         snprintf(s_line, sizeof(s_line), "%s is on the card. Portals: Stories.", p->name);
     }
-    for (int i = 0; i < n; i++) free(data[i]);
+    if (bundle != NULL) {
+        free(bundle);
+    } else {
+        for (int i = 0; i < got; i++) free(data[i]);
+    }
     draw();
     return ok;
 }

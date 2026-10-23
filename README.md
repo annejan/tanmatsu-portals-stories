@@ -37,7 +37,12 @@ writes these next to the stories page:
 - `index.txt`: a story a line, tab-separated: id, sha256, bytes, files,
   name, about. Lines starting `#` are comments.
 - `packs/<id>/files.txt`: the story's files, `<bytes>\t<path>` a line.
-- `packs/<id>/<path>`: each file as it goes on the card.
+- `packs/<id>.txt`: all those files one after another, in the list's
+  order. The plugin gets a story with this one request and splits it by the
+  sizes in the list.
+- `packs/<id>/<path>`: each file as it goes on the card. The plugin falls
+  back to these, one request a file, when the site has no `<id>.txt` or
+  its size does not match the list.
 
 Every file of a story is fetched before any is written, and each must have
 the size the list gives, so a dropped connection leaves the card as it was.
