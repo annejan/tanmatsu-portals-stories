@@ -117,10 +117,11 @@ static void draw(void) {
         char right[48];
         snprintf(right, sizeof(right), "%s  %d KB", status_text(p), (p->bytes + 1023) / 1024);
         text(i == s_sel ? C_TEXT : C_DIM, 18, 28, y, p->name);
-        text(p->status == ST_CURRENT ? C_DIM : C_BLUE, 18, w - 28 - 11 * (float)strlen(right), y, right);
+        pax_right_text(&s_buf, p->status == ST_CURRENT ? C_DIM : C_BLUE, pax_font_sky_mono, 18, w - 28, y, right);
         y += 40;
     }
-    if (s_n > 0) wrapped(C_DIM, 18, 28, y + 8, (int)((w - 56) / 11), 3, s_packs[s_sel].about);
+    float const cw = pax_text_size(pax_font_sky_mono, 18, "0").x;  // a monospace font
+    if (s_n > 0 && cw > 0) wrapped(C_DIM, 18, 28, y + 8, (int)((w - 56) / cw), 3, s_packs[s_sel].about);
 
     text(C_ORANGE, 18, 24, h - 64, s_line);
     static char logged[sizeof(s_line)];

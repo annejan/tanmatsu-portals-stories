@@ -21,6 +21,10 @@ pax_2vec2f pax_draw_text_adv(pax_buf_t* buf, pax_col_t c, pax_font_t const* f, f
                              char const* t, size_t len, pax_align_t h, pax_align_t v, ptrdiff_t cur) {
     return (pax_2vec2f){0};
 }
+pax_2vec2f pax_text_size_adv(pax_font_t const* f, float size, char const* t, size_t len, pax_align_t h,
+                             pax_align_t v, ptrdiff_t cur) {
+    return (pax_2vec2f){12, size, 0, 0};
+}
 void pax_background(pax_buf_t* b, pax_col_t c) {}
 void pax_simple_rect(pax_buf_t* b, pax_col_t c, float x, float y, float w, float h) {}
 int  pax_buf_get_width(pax_buf_t const* b) { return 800; }
