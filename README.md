@@ -23,9 +23,11 @@ Portals' own, in `/sd/portals/saves/`, and are not touched.
 Needs a launcher with plugin API 3.1 (menu plugins that run when picked:
 [tanmatsu-launcher#161](https://github.com/Nicolai-Electronics/tanmatsu-launcher/pull/161))
 whose plugins can use HTTPS
-([badge-elf-api#6](https://github.com/badgeteam/esp32-component-badge-elf-api/pull/6)),
-and an SD card. Until both are in a launcher release, it runs on a launcher
-built from those branches.
+([badge-elf-api#6](https://github.com/badgeteam/esp32-component-badge-elf-api/pull/6))
+and draw the right way up
+([badge-elf-api#7](https://github.com/badgeteam/esp32-component-badge-elf-api/pull/7)),
+and an SD card. Until all three are in a launcher release, it runs on a
+launcher built from those branches.
 
 ## What it fetches
 
