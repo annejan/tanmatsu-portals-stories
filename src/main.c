@@ -128,6 +128,7 @@ static void draw(void) {
     if (strcmp(logged, s_line) != 0 && s_line[0]) asp_log_info(TAG, "%s", s_line);
     snprintf(logged, sizeof(logged), "%s", s_line);
     text(C_DIM, 18, 24, h - 34, "Enter: get it   A: get all new and updates   Esc: back");
+    pax_join();  // the launcher renders asynchronously: finish before the blit
     asp_disp_write_pax(&s_buf);
 }
 
