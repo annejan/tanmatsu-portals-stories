@@ -123,6 +123,9 @@ static void draw(void) {
     if (s_n > 0) wrapped(C_DIM, 18, 28, y + 8, (int)((w - 56) / 11), 3, s_packs[s_sel].about);
 
     text(C_ORANGE, 18, 24, h - 64, s_line);
+    static char logged[sizeof(s_line)];
+    if (strcmp(logged, s_line) != 0 && s_line[0]) asp_log_info(TAG, "%s", s_line);
+    snprintf(logged, sizeof(logged), "%s", s_line);
     text(C_DIM, 18, 24, h - 34, "Enter: get it   A: get all new and updates   Esc: back");
     asp_disp_write_pax(&s_buf);
 }
@@ -359,6 +362,7 @@ static bool load_index(void) {
         field(&line, p->about, sizeof(p->about));
         if (!safe_path(p->id) || strchr(p->id, '/') || strlen(p->sha) != 64) continue;
         card_status(p);
+        asp_log_info(TAG, "%s: %s", p->id, status_text(p));
         s_n++;
     }
     free(index);

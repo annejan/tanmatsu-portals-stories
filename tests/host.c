@@ -29,6 +29,7 @@ void pax_buf_destroy(pax_buf_t* b) {}
 pax_font_t const pax_font_sky_mono_raw;
 asp_err_t asp_disp_init_pax_buf(pax_buf_t* b) { return ASP_OK; }
 void asp_log_error(char const* tag, char const* fmt, ...) {}
+void asp_log_info(char const* tag, char const* fmt, ...) {}
 
 extern char const* host_line(void);
 asp_err_t asp_disp_write_pax(pax_buf_t* b) {
