@@ -20,8 +20,12 @@ Then start Portals: the stories are under Stories. A story goes to
 `.stories` file there, so the next update knows what changed. Saves are
 Portals' own, in `/sd/portals/saves/`, and are not touched.
 
-Needs a launcher with plugin API 3.1 (menu plugins that run when picked),
-and an SD card.
+Needs a launcher with plugin API 3.1 (menu plugins that run when picked:
+[tanmatsu-launcher#161](https://github.com/Nicolai-Electronics/tanmatsu-launcher/pull/161))
+whose plugins can use HTTPS
+([badge-elf-api#6](https://github.com/badgeteam/esp32-component-badge-elf-api/pull/6)),
+and an SD card. Until both are in a launcher release, it runs on a launcher
+built from those branches.
 
 ## What it fetches
 
